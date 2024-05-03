@@ -1,0 +1,11 @@
+﻿file_paths:
+  - "C:/example.pdf"
+  - "D:/Files/example.mp3"
+days_without_modification: 3
+email_settings:
+  from_email: "sender@example.com"
+  to_email: "recipient@example.com"
+  smtp_server: "smtp.example.com"
+  smtp_port: 587
+  username: "user@example.com"
+  password: "password123"
