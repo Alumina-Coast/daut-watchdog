@@ -1,11 +1,14 @@
-﻿check_every_n_days: 1
-directories:
-  - "C:/example.pdf"
-  - "D:/Files/example.mp3"
-smtp_settings:
-  from_email: "sender@example.com"
-  to_email: "recipient@example.com"
-  smtp_server: "smtp.example.com"
-  smtp_port: 587
-  username: "user@example.com"
-  password: "password123"
+﻿Config:
+  CheckEveryNDays: 7
+  Conditions:
+    - ConditionType: "InactiveFor"
+      TimeSpan: "1.00:00:00"  # 1 day
+    - ConditionType: "LastLineContains"
+      CompareString: "error"
+  EmailSettings:
+    FromEmail: "sender@example.com"
+    ToEmail: "recipient@example.com"
+    SmtpServer: "smtp.example.com"
+    SmtpPort: 587
+    Username: "user@example.com"
+    Password: "password123"
