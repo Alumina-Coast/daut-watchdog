@@ -1,8 +1,8 @@
-﻿file_paths:
+﻿check_every_n_days: 1
+directories:
   - "C:/example.pdf"
   - "D:/Files/example.mp3"
-days_without_modification: 3
-email_settings:
+smtp_settings:
   from_email: "sender@example.com"
   to_email: "recipient@example.com"
   smtp_server: "smtp.example.com"
