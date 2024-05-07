@@ -21,7 +21,8 @@ namespace Watchdog
         private static Config ReadConfigFromYaml(string filePath)
         {
             var deserializer = new DeserializerBuilder()
-                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                .WithTypeConverter(new ConditionConverter())
                 .Build();
 
             var yamlData = File.ReadAllText(filePath);

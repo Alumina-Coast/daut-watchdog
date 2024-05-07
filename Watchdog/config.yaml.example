@@ -1,14 +1,13 @@
-﻿Config:
-  CheckEveryNDays: 7
-  Conditions:
-    - ConditionType: "InactiveFor"
-      TimeSpan: "1.00:00:00"  # 1 day
-    - ConditionType: "LastLineContains"
-      CompareString: "error"
-  EmailSettings:
-    FromEmail: "sender@example.com"
-    ToEmail: "recipient@example.com"
-    SmtpServer: "smtp.example.com"
-    SmtpPort: 587
-    Username: "user@example.com"
-    Password: "password123"
+﻿CheckEveryNDays: 7
+Conditions:
+- ConditionType: "InactiveFor"
+  TimeSpan: "1.00:00:00"  # 1 day
+- ConditionType: "LastLineContains"
+  CompareString: "error"
+EmailSettings:
+FromEmail: "sender@example.com"
+ToEmail: "recipient@example.com"
+SmtpServer: "smtp.example.com"
+SmtpPort: 587
+Username: "user@example.com"
+Password: "password123"
