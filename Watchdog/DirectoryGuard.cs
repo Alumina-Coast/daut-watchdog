@@ -19,19 +19,26 @@ namespace Watchdog
 
         public void Guard() 
         {
-            watcher = new()
+            try
             {
-                Path = Directorio,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
-            };
+                watcher = new()
+                {
+                    Path = Directorio,
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
+                };
 
-            watcher.Changed += OnChanged;
-            watcher.Created += OnChanged;
-            watcher.Deleted += OnChanged;
-            watcher.Error += OnError;
+                watcher.Changed += OnChanged;
+                watcher.Created += OnChanged;
+                watcher.Deleted += OnChanged;
+                watcher.Error += OnError;
 
-            watcher.IncludeSubdirectories = true;
-            watcher.EnableRaisingEvents = true;
+                watcher.IncludeSubdirectories = true;
+                watcher.EnableRaisingEvents = true;
+            } 
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         public List<string> GetReport()
@@ -72,7 +79,12 @@ namespace Watchdog
 
         private void OnError(object sender, ErrorEventArgs e)
         {
-            throw e.GetException();
+            Debug.WriteLine(e.GetException().Message);
+            if (watcher is not null)
+            {
+                watcher.Dispose();
+                watcher = null;
+            }
         }
     }
 }

@@ -6,16 +6,10 @@ using MimeKit;
 
 namespace Watchdog
 {
-    public class Worker : BackgroundService
+    public class Worker(ILogger<Worker> logger, Config config) : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
-        private readonly Config _config;
-
-        public Worker(ILogger<Worker> logger, Config config)
-        {
-            _logger = logger;
-            _config = config;
-        }
+        private readonly ILogger<Worker> _logger = logger;
+        private readonly Config _config = config;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -28,9 +22,16 @@ namespace Watchdog
             {
                 foreach (var guard in _config.Guardias)
                 {
-                    foreach(var message in guard.GetReport())
+                    try
                     {
-                        _logger.LogInformation(message);
+                        foreach (var message in guard.GetReport())
+                        {
+                            _logger.LogInformation(message);
+                        }
+                    } 
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex.Message);
                     }
                 }
 
