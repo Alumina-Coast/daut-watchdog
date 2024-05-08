@@ -48,7 +48,7 @@ namespace Watchdog
                 {
                     TimeSpan = TimeSpan.Parse((string)properties["TimeSpan"])
                 },
-                "LastLineContains" => new LastLineContains
+                "NewLineContains" => new NewLineContains
                 {
                     CompareString = (string)properties["CompareString"]
                 },

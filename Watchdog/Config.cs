@@ -8,10 +8,10 @@ namespace Watchdog
 {
     public class Config
     {
-        public List<DirectoryCheck> DirectoryChecks { get; set; } = [];
-        public int CheckEveryNDays { get; set; } = 1;
+        public List<DirectoryGuard> DirectoryGuards { get; set; } = [];
+        public TimeSpan CheckEvery { get; set; } = TimeSpan.FromDays(1);
         public SmtpSettings EmailSettings { get; set; } = new();
-        public List<string> EmailAddresses { get; set; }
+        public List<string> EmailAddresses { get; set; } = [];
     }
 
     public class SmtpSettings
