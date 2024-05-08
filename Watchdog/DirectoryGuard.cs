@@ -8,11 +8,23 @@ using System.Threading.Tasks;
 
 namespace Watchdog
 {
+    public class WarningRaisedEventArgs : EventArgs
+    {
+        public required DirectoryGuard Parent { get; init; }
+        public string Filename { get; init; } = string.Empty;
+        public string Message { get; init; } = string.Empty;
+        public bool SystemError { get; init; } = false;
+        public DateTime Timestamp { get; } = DateTime.UtcNow;
+    }
+
     public class DirectoryGuard
     {
         public required string Directorio { get; init; }
         public List<string> Archivos { get; init; } = [];
         public List<ICondition> Condiciones { get; set; } = [];
+
+        public delegate void WarningRaisedEventHandler(object sender, WarningRaisedEventArgs e);
+        public event WarningRaisedEventHandler? WarningRaised;
 
         private FileSystemWatcher? watcher;
         private static readonly List<WatcherChangeTypes> _acceptedTypes = [WatcherChangeTypes.Deleted, WatcherChangeTypes.Created, WatcherChangeTypes.Changed];
@@ -37,14 +49,20 @@ namespace Watchdog
             } 
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                WarningRaised?.Invoke(this, new WarningRaisedEventArgs()
+                {
+                    Parent = this,
+                    Filename = Directorio,
+                    Message = $"Error al inicializar guardia de '{Directorio}'. Razón: '{ex.Message}'.",
+                    SystemError = true,
+                });
             }
         }
 
         public List<string> GetReport()
         {
             var report = new List<string>();
-            var files = System.IO.Directory.GetFiles(Directorio);
+            var files = Directory.GetFiles(Directorio);
             foreach (var file in files)
             {
                 if (Archivos.Count !=0 && !Archivos.Contains(Path.GetFileName(file)))
@@ -72,14 +90,25 @@ namespace Watchdog
             {
                 if (condition.IsConditionMet(e.FullPath))
                 {
-                    Debug.WriteLine(condition.PrintAsMessage(e.FullPath));
+                    WarningRaised?.Invoke(this, new WarningRaisedEventArgs() 
+                    { 
+                        Parent = this, 
+                        Filename = e.FullPath, 
+                        Message = condition.PrintAsMessage(e.FullPath) 
+                    });
                 }
             }
         }
 
         private void OnError(object sender, ErrorEventArgs e)
         {
-            Debug.WriteLine(e.GetException().Message);
+            WarningRaised?.Invoke(this, new WarningRaisedEventArgs()
+            {
+                Parent = this,
+                Filename = Directorio,
+                Message = $"Error en el guardia de '{Directorio}'. Razón: '{e.GetException().Message}'.",
+                SystemError = true,
+            });
             if (watcher is not null)
             {
                 watcher.Dispose();

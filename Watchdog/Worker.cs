@@ -15,6 +15,7 @@ namespace Watchdog
         {
             foreach (var guard in _config.Guardias)
             {
+                guard.WarningRaised += Guard_WarningRaised;
                 guard.Guard();
             }
 
@@ -36,6 +37,18 @@ namespace Watchdog
                 }
 
                 await Task.Delay(_config.IterarCada, stoppingToken);
+            }
+        }
+
+        private void Guard_WarningRaised(object sender, WarningRaisedEventArgs e)
+        {
+            if (e.SystemError)
+            {
+                _logger.LogError(e.Message);
+            }
+            else
+            {
+                _logger.LogInformation(e.Message);
             }
         }
 
