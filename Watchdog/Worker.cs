@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.FileSystemGlobbing;
@@ -9,73 +10,31 @@ namespace Watchdog
     {
         private readonly ILogger<Worker> _logger;
         private readonly Config _config;
-        private readonly List<FileSystemWatcher> _watchers = [];
 
         public Worker(ILogger<Worker> logger, Config config)
         {
             _logger = logger;
             _config = config;
-
-            foreach (var directoryCheck in config.DirectoryChecks)
-            {
-                var watcher = new FileSystemWatcher
-                {
-                    Path = directoryCheck.Directory,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
-                };
-
-                watcher.Changed += OnChanged;
-                watcher.Created += OnChanged;
-                watcher.Deleted += OnChanged;
-                watcher.Renamed += OnRenamed;
-                watcher.Error += OnError;
-
-                watcher.IncludeSubdirectories = true;
-            }
-
-            foreach (var watcher in _watchers)
-            {
-                watcher.EnableRaisingEvents = true;
-            }
-        }
-
-        private void OnChanged(object sender, FileSystemEventArgs e)
-        {
-            _logger.LogInformation($"File {e.FullPath} has been {e.ChangeType.ToString().ToLower()}.");
-        }
-
-        private void OnRenamed(object sender, RenamedEventArgs e)
-        {
-            _logger.LogInformation($"File {e.OldFullPath} has been renamed to {e.FullPath}.");
-        }
-
-        private void OnError(object sender, ErrorEventArgs e)
-        {
-            _logger.LogError($"FileSystemWatcher encountered an error: {e.GetException().Message}");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            foreach (var guard in _config.DirectoryGuards)
+            {
+                guard.Guard();
+            }
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                //foreach (var filePath in _config.FilePaths)
-                //{
-                //    var fileInfo = new FileInfo(filePath);
-                //    if (!fileInfo.Exists)
-                //    {
-                //        _logger.LogWarning($"File not found: {filePath}");
-                //        continue;
-                //    }
+                foreach (var guard in _config.DirectoryGuards)
+                {
+                    foreach(var message in guard.GetReport())
+                    {
+                        _logger.LogInformation(message);
+                    }
+                }
 
-                //    var lastWriteTime = fileInfo.LastWriteTime;
-                //    if ((DateTime.Now - lastWriteTime).Days >= _config.DaysWithoutModification)
-                //    {
-                //        _logger.LogInformation($"File {filePath} has not been modified in {_config.DaysWithoutModification} days.");
-                //        // await SendWarningEmail(filePath, lastWriteTime);
-                //    }
-                //}
-
-                await Task.Delay(60000, stoppingToken);
+                await Task.Delay(_config.CheckEvery, stoppingToken);
             }
         }
 
