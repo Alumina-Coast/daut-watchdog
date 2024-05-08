@@ -10,19 +10,18 @@ namespace Watchdog
 {
     public class DirectoryGuard
     {
-        public required string Directory { get; init; }
-        public List<string> Files { get; init; } = [];
-        public bool AllConditions { get; set; } = false;
-        public List<ICondition> Conditions { get; set; } = [];
-        private FileSystemWatcher? watcher;
+        public required string Directorio { get; init; }
+        public List<string> Archivos { get; init; } = [];
+        public List<ICondition> Condiciones { get; set; } = [];
 
+        private FileSystemWatcher? watcher;
         private static readonly List<WatcherChangeTypes> _acceptedTypes = [WatcherChangeTypes.Deleted, WatcherChangeTypes.Created, WatcherChangeTypes.Changed];
 
         public void Guard() 
         {
             watcher = new()
             {
-                Path = Directory,
+                Path = Directorio,
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
             };
 
@@ -38,14 +37,14 @@ namespace Watchdog
         public List<string> GetReport()
         {
             var report = new List<string>();
-            var files = System.IO.Directory.GetFiles(Directory);
+            var files = System.IO.Directory.GetFiles(Directorio);
             foreach (var file in files)
             {
-                if (Files.Count !=0 && !Files.Contains(Path.GetFileName(file)))
+                if (Archivos.Count !=0 && !Archivos.Contains(Path.GetFileName(file)))
                 {
                     continue;
                 }
-                foreach(var condition in Conditions.Where(c => c.Event is null || !_acceptedTypes.Contains(c.Event.Value)))
+                foreach(var condition in Condiciones.Where(c => c.Event is null || !_acceptedTypes.Contains(c.Event.Value)))
                 {
                     if (condition.IsConditionMet(file))
                     {
@@ -58,11 +57,11 @@ namespace Watchdog
 
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
-            if (Files.Count != 0 && !Files.Contains(Path.GetFileName(e.FullPath)))
+            if (Archivos.Count != 0 && !Archivos.Contains(Path.GetFileName(e.FullPath)))
             {
                 return;
             }
-            foreach (var condition in Conditions.Where(c => c.Event == e.ChangeType))
+            foreach (var condition in Condiciones.Where(c => c.Event == e.ChangeType))
             {
                 if (condition.IsConditionMet(e.FullPath))
                 {
@@ -74,61 +73,6 @@ namespace Watchdog
         private void OnError(object sender, ErrorEventArgs e)
         {
             throw e.GetException();
-        }
-    }
-
-    public interface ICondition
-    {
-        public WatcherChangeTypes? Event { get; }
-        public bool IsConditionMet(string filePath);
-        public string PrintAsMessage(string filePath);
-    }
-
-    public class NewLineContains : ICondition
-    {
-        public WatcherChangeTypes? Event { get; init; } = WatcherChangeTypes.Changed;
-        public string CompareString { get; init; } = string.Empty;
-
-        public string PrintAsMessage(string filePath)
-        {
-            return $"La última línea del archivo '{filePath}' contiene el string: '{CompareString}'.";
-        }
-
-        public bool IsConditionMet(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                var lastLine = File.ReadAllLines(filePath).LastOrDefault();
-                if (lastLine is not null)
-                {
-                    return lastLine.Contains(CompareString, StringComparison.InvariantCultureIgnoreCase);
-                }
-            }
-            return false;
-        }
-    }
-
-    public class InactiveFor : ICondition
-    {
-        public WatcherChangeTypes? Event { get; } = null;
-        public TimeSpan TimeSpan { get; init; } = TimeSpan.FromDays(1);
-
-        public string PrintAsMessage(string filePath)
-        {
-            return $"Inactividad superior a {TimeSpan} detectada en '{filePath}'.";
-        }
-
-        public bool IsConditionMet(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                var fileInfo = new FileInfo(filePath);
-                if (fileInfo.Exists)
-                {
-                    return DateTime.UtcNow - fileInfo.LastAccessTimeUtc >= TimeSpan;
-                }
-            }
-            return false;
         }
     }
 }
