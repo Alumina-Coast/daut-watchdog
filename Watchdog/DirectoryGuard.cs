@@ -44,7 +44,7 @@ namespace Watchdog
                 {
                     continue;
                 }
-                foreach(var condition in Condiciones.Where(c => c.Event is null || !_acceptedTypes.Contains(c.Event.Value)))
+                foreach(var condition in Condiciones.Where(c => c.TipoDeEvento is null || !_acceptedTypes.Contains(c.TipoDeEvento.Value)))
                 {
                     if (condition.IsConditionMet(file))
                     {
@@ -61,7 +61,7 @@ namespace Watchdog
             {
                 return;
             }
-            foreach (var condition in Condiciones.Where(c => c.Event == e.ChangeType))
+            foreach (var condition in Condiciones.Where(c => c.TipoDeEvento == e.ChangeType))
             {
                 if (condition.IsConditionMet(e.FullPath))
                 {

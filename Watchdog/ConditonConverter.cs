@@ -24,7 +24,7 @@ namespace Watchdog
             {
                 var propertyName = parser.Consume<Scalar>().Value;
                 parser.TryConsume<Scalar>(out var value);
-                if (propertyName == "ConditionType")
+                if (propertyName == "Condicion")
                     conditionType = value.Value;
                 else
                     properties[propertyName] = value.Value;
@@ -44,13 +44,13 @@ namespace Watchdog
         {
             return conditionType switch
             {
-                "InactiveFor" => new InactiveFor
+                "Inactividad" => new InactiveFor
                 {
-                    TimeSpan = TimeSpan.Parse((string)properties["TimeSpan"])
+                    TiempoLimite = TimeSpan.Parse((string)properties["TiempoLimite"])
                 },
-                "NewLineContains" => new NewLineContains
+                "LeerUltimaLinea" => new NewLineContains
                 {
-                    CompareString = (string)properties["CompareString"]
+                    Contiene = (string)properties["Contiene"]
                 },
                 _ => throw new ArgumentException($"Unsupported condition type: {conditionType}"),
             };

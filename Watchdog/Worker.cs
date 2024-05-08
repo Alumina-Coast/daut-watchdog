@@ -19,14 +19,14 @@ namespace Watchdog
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            foreach (var guard in _config.DirectoryGuards)
+            foreach (var guard in _config.Guardias)
             {
                 guard.Guard();
             }
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                foreach (var guard in _config.DirectoryGuards)
+                foreach (var guard in _config.Guardias)
                 {
                     foreach(var message in guard.GetReport())
                     {
@@ -34,7 +34,7 @@ namespace Watchdog
                     }
                 }
 
-                await Task.Delay(_config.CheckEvery, stoppingToken);
+                await Task.Delay(_config.IterarCada, stoppingToken);
             }
         }
 
