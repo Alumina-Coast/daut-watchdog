@@ -28,11 +28,13 @@ namespace Watchdog
                         foreach (var message in guard.GetReport())
                         {
                             _logger.LogInformation(message);
+                            await SendWarningEmails(message);
                         }
                     } 
                     catch (Exception ex)
                     {
                         _logger.LogError(ex.Message);
+                        await SendWarningEmails(ex.Message);
                     }
                 }
 
@@ -40,38 +42,47 @@ namespace Watchdog
             }
         }
 
-        private void Guard_WarningRaised(object sender, WarningRaisedEventArgs e)
+        private async void Guard_WarningRaised(object sender, WarningRaisedEventArgs e)
         {
             if (e.SystemError)
             {
                 _logger.LogError(e.Message);
+                await SendWarningEmails(e.Message);
             }
             else
             {
                 _logger.LogInformation(e.Message);
+                await SendWarningEmails(e.Message);
             }
         }
 
-        //private async Task SendWarningEmail(string filePath, DateTime lastModified)
-        //{
-        //    if (_config.EmailSettings is null)
-        //    {
-        //        return;
-        //    }
-        //    var message = new MimeMessage();
-        //    message.From.Add(new MailboxAddress(_config.EmailSettings.FromEmail, _config.EmailSettings.FromEmail));
-        //    message.To.Add(new MailboxAddress(_config.EmailSettings.ToEmail, _config.EmailSettings.ToEmail));
-        //    message.Subject = "File Modification Alert";
-        //    message.Body = new TextPart("plain")
-        //    {
-        //        Text = $"The file {filePath} has not been modified since {lastModified}."
-        //    };
+        private async Task SendWarningEmails(string body)
+        {
+            _logger.LogInformation("Sending out warning emails");
+            try
+            {
+                using var client = new SmtpClient();
+                await client.ConnectAsync(_config.ConfiguracionEmail.SmtpServer, _config.ConfiguracionEmail.SmtpPort, true);
+                await client.AuthenticateAsync(_config.ConfiguracionEmail.Username, _config.ConfiguracionEmail.Password);
+                foreach (var emailAddress in _config.DireccionesEmail)
+                {
+                    var message = new MimeMessage();
+                    message.From.Add(new MailboxAddress(_config.ConfiguracionEmail.FromEmail, _config.ConfiguracionEmail.FromEmail));
+                    message.To.Add(new MailboxAddress(emailAddress, emailAddress));
+                    message.Subject = "File Modification Alert";
+                    message.Body = new TextPart("plain")
+                    {
+                        Text = body
+                    };
 
-        //    using var client = new SmtpClient();
-        //    await client.ConnectAsync(_config.EmailSettings.SmtpServer, _config.EmailSettings.SmtpPort, true);
-        //    await client.AuthenticateAsync(_config.EmailSettings.Username, _config.EmailSettings.Password);
-        //    await client.SendAsync(message);
-        //    await client.DisconnectAsync(true);
-        //}
+                    await client.SendAsync(message);
+                }
+                await client.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+        }
     }
 }
