@@ -1,4 +1,4 @@
-using System.IO;
+using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -8,14 +8,31 @@ namespace Watchdog
     {
         public static void Main(string[] args)
         {
-            var builder = Host.CreateApplicationBuilder(args);
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.File("logs/watchdog-.log", rollingInterval: RollingInterval.Day)
+                .CreateLogger();
+            try
+            {
+                Log.Information("Starting up the service");
+                var builder = Host.CreateApplicationBuilder(args);
 
-            var config = ReadConfigFromYaml("config.yaml");
-            builder.Services.AddSingleton(config);
-            builder.Services.AddHostedService<Worker>();
+                var config = ReadConfigFromYaml("config.yaml");
+                builder.Services.AddSingleton(config);
+                builder.Services.AddHostedService<Worker>();
+                builder.Logging.AddSerilog();
 
-            var host = builder.Build();
-            host.Run();
+                var host = builder.Build();
+                host.Run();
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "There was a problem starting the service");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         private static Config ReadConfigFromYaml(string filePath)
