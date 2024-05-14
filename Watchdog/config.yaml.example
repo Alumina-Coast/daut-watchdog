@@ -1,11 +1,13 @@
 ﻿IterarCada: "1.00:00:00"  # 1 day
 Guardias:
 - Directorio: "C:\\test"
-  Archivos:
+  Filtros:
   - "texto.txt"
+  - "*.log"
+  - "nombre.*"
   Condiciones:
   - Condicion: "Inactividad"
-    TiempoLimite: "0.00:01:00"  # 1 day
+    TiempoLimite: "0.00:01:00"  # 1 minute
   - Condicion: "LeerUltimaLinea"
     Contiene: "error"
 ConfiguracionEmail:

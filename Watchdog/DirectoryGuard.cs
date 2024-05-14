@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Org.BouncyCastle.Math.EC.Multiplier;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -20,8 +21,9 @@ namespace Watchdog
     public class DirectoryGuard
     {
         public required string Directorio { get; init; }
-        public List<string> Archivos { get; init; } = [];
+        public List<string> Filtros { get; init; } = [];
         public List<ICondition> Condiciones { get; set; } = [];
+        public bool IncluirSubdirectorios { get; init; } = false;
 
         public delegate void WarningRaisedEventHandler(object sender, WarningRaisedEventArgs e);
         public event WarningRaisedEventHandler? WarningRaised;
@@ -29,16 +31,20 @@ namespace Watchdog
         private FileSystemWatcher? watcher;
         private static readonly List<WatcherChangeTypes> _acceptedTypes = [WatcherChangeTypes.Deleted, WatcherChangeTypes.Created, WatcherChangeTypes.Changed];
 
-        public void Guard() 
+        public void Guard()
         {
             try
             {
                 watcher = new()
                 {
                     Path = Directorio,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+                    IncludeSubdirectories = IncluirSubdirectorios,
                 };
-
+                foreach (var file in Filtros)
+                {
+                    watcher.Filters.Add(file);
+                }
                 watcher.Changed += OnChanged;
                 watcher.Created += OnChanged;
                 watcher.Deleted += OnChanged;
@@ -59,17 +65,28 @@ namespace Watchdog
             }
         }
 
+        private void OnDisposed(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<string> GetReport()
         {
             var report = new List<string>();
-            var files = Directory.GetFiles(Directorio);
+            var files = new HashSet<string>();
+            var manualCheckCondiciones = Condiciones.Where(c => c.TipoDeEvento is null || !_acceptedTypes.Contains(c.TipoDeEvento.Value));
+
+            foreach (var filtro in Filtros)
+            {
+                foreach (var file in Directory.GetFiles(Directorio, filtro))
+                {
+                    files.Add(file);
+                }
+            }
+
             foreach (var file in files)
             {
-                if (Archivos.Count !=0 && !Archivos.Contains(Path.GetFileName(file)))
-                {
-                    continue;
-                }
-                foreach(var condition in Condiciones.Where(c => c.TipoDeEvento is null || !_acceptedTypes.Contains(c.TipoDeEvento.Value)))
+                foreach (var condition in manualCheckCondiciones)
                 {
                     if (condition.IsConditionMet(file))
                     {
@@ -82,10 +99,6 @@ namespace Watchdog
 
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
-            if (Archivos.Count != 0 && !Archivos.Contains(Path.GetFileName(e.FullPath)))
-            {
-                return;
-            }
             foreach (var condition in Condiciones.Where(c => c.TipoDeEvento == e.ChangeType))
             {
                 if (condition.IsConditionMet(e.FullPath))
