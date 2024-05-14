@@ -1,6 +1,7 @@
 ﻿IterarCada: "1.00:00:00"  # 1 day
 Guardias:
-- Directorio: "C:\\test"
+- Nombre: "test"
+  Directorio: "C:\\test"
   Filtros:
   - "texto.txt"
   - "*.log"
@@ -13,6 +14,7 @@ Guardias:
 ConfiguracionEmail:
   FromEmail: "sender@example.com"
   Subject: "TEST"
+  EmailHeader: "<< TOP OF EMAIL >>"
   SmtpServer: "smtp.example.com"
   SmtpPort: 587
   Username: "username"

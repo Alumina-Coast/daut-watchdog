@@ -20,6 +20,7 @@ namespace Watchdog
 
     public class DirectoryGuard
     {
+        public required string Nombre { get; init; }
         public required string Directorio { get; init; }
         public List<string> Filtros { get; init; } = [];
         public List<ICondition> Condiciones { get; set; } = [];
@@ -41,6 +42,10 @@ namespace Watchdog
                     NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
                     IncludeSubdirectories = IncluirSubdirectorios,
                 };
+                if (Filtros.Count == 0)
+                {
+                    Filtros.Add("*");
+                }
                 foreach (var file in Filtros)
                 {
                     watcher.Filters.Add(file);
