@@ -62,8 +62,11 @@ namespace Watchdog
             try
             {
                 using var client = new SmtpClient();
-                await client.ConnectAsync(_config.ConfiguracionEmail.SmtpServer, _config.ConfiguracionEmail.SmtpPort, true);
-                await client.AuthenticateAsync(_config.ConfiguracionEmail.Username, _config.ConfiguracionEmail.Password);
+                await client.ConnectAsync(_config.ConfiguracionEmail.SmtpServer, _config.ConfiguracionEmail.SmtpPort, _config.ConfiguracionEmail.UseSsl);
+                if (_config.ConfiguracionEmail.UseCredentials)
+                {
+                    await client.AuthenticateAsync(_config.ConfiguracionEmail.Username, _config.ConfiguracionEmail.Password);
+                }
                 foreach (var emailAddress in _config.DireccionesEmail)
                 {
                     var message = new MimeMessage();
@@ -75,7 +78,7 @@ namespace Watchdog
                         Text = body
                     };
 
-                    await client.SendAsync(message);
+                    var algo = await client.SendAsync(message);
                 }
                 await client.DisconnectAsync(true);
             }

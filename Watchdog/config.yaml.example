@@ -10,11 +10,13 @@ Guardias:
     Contiene: "error"
 ConfiguracionEmail:
   FromEmail: "sender@example.com"
-  Subject: "PM5881"
+  Subject: "TEST"
   SmtpServer: "smtp.example.com"
   SmtpPort: 587
-  Username: "user@example.com"
+  Username: "username"
   Password: "password123"
+  UseSsl: false
+  UseCredentials: false
 DireccionesEmail:
 - "recipient@example.com"
 - "recipient2@example.com"

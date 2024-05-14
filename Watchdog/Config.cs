@@ -22,5 +22,7 @@ namespace Watchdog
         public int SmtpPort { get; set; } = 0;
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public bool UseSsl { get; set; } = false;
+        public bool UseCredentials { get; set; } = false;
     }
 }
