@@ -8,6 +8,8 @@ namespace Watchdog
     {
         public static void Main(string[] args)
         {
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Console()
                 .WriteTo.File("logs/watchdog-.log", rollingInterval: RollingInterval.Day)
@@ -15,14 +17,20 @@ namespace Watchdog
             try
             {
                 Log.Information("Starting up the service");
-                var builder = Host.CreateApplicationBuilder(args);
-
                 var config = ReadConfigFromYaml("config.yaml");
-                builder.Services.AddSingleton(config);
-                builder.Services.AddHostedService<Worker>();
-                builder.Logging.AddSerilog();
+                var host = Host.CreateDefaultBuilder(args)
+                    .ConfigureServices(services =>
+                    {
+                        services.AddSingleton(config);
+                        services.AddHostedService<Worker>();
+                    })
+                    .UseWindowsService(options =>
+                    {
+                        options.ServiceName = "Utilidades Monitoreo";
+                    })
+                    .UseSerilog()
+                    .Build();
 
-                var host = builder.Build();
                 host.Run();
             }
             catch (Exception ex)

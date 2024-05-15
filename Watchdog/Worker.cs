@@ -4,6 +4,7 @@ using System.IO;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.FileSystemGlobbing;
 using MimeKit;
+using Serilog;
 
 namespace Watchdog
 {
@@ -22,6 +23,7 @@ namespace Watchdog
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                _logger.LogInformation("Doing routine check.");
                 string body = $"{_config.ConfiguracionEmail.EmailHeader}\r\n";
                 bool send = false;
                 foreach (var guard in _config.Guardias)
