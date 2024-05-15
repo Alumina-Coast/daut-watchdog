@@ -1,26 +1,31 @@
-﻿IterarCada: "1.00:00:00"  # 1 day
+﻿IterarCada: 1.00:00:00  # 1 day
 Guardias:
-- Nombre: "test"
-  Directorio: "C:\\test"
+- Nombre: test
+  Directorio: C:\test
   Filtros:
   - "texto.txt"
   - "*.log"
   - "nombre.*"
   Condiciones:
-  - Condicion: "Inactividad"
-    TiempoLimite: "0.00:01:00"  # 1 minute
-  - Condicion: "LeerUltimaLinea"
-    Contiene: "error"
+  - Condicion: Inactividad
+    TiempoLimite: 0.00:01:00  # 1 minute
+  - Condicion: LeerUltimaLinea
+    Contiene: error
+- Nombre: TEST2
+  Directorio: C:\test
+  Condiciones:
+  - Condicion: Inactividad
+    TiempoLimite: 0.01:00:00  # 1 hour
 ConfiguracionEmail:
-  FromEmail: "sender@example.com"
-  Subject: "TEST"
-  EmailHeader: "<< TOP OF EMAIL >>"
-  SmtpServer: "smtp.example.com"
+  FromEmail: sender@example.com
+  Subject: TEST
+  EmailHeader: << TOP OF EMAIL >>
+  SmtpServer: smtp.example.com
   SmtpPort: 587
-  Username: "username"
-  Password: "password123"
+  Username: username
+  Password: password123
   UseSsl: false
   UseCredentials: false
 DireccionesEmail:
-- "recipient@example.com"
-- "recipient2@example.com"
+- recipient@example.com
+- recipient2@example.com
