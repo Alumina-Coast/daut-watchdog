@@ -44,13 +44,15 @@ namespace Watchdog
         {
             return conditionType switch
             {
-                "Inactividad" => new InactiveFor
+                "Inactividad" => new FileInactiveFor
                 {
-                    TiempoLimite = TimeSpan.Parse((string)properties["TiempoLimite"])
+                    TiempoLimite = TimeSpan.Parse((string)properties["TiempoLimite"]),
+                    Unanime = properties.TryGetValue("Unanime", out object? value) && bool.Parse((string)value),
                 },
-                "LeerUltimaLinea" => new NewLineContains
+                "UltimaLinea" => new NewLineContains
                 {
-                    Contiene = (string)properties["Contiene"]
+                    Contiene = (string)properties["Contiene"],
+                    Unanime = properties.TryGetValue("Unanime", out object? value) && bool.Parse((string)value),
                 },
                 _ => throw new ArgumentException($"Unsupported condition type: {conditionType}"),
             };

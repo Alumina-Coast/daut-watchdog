@@ -89,14 +89,28 @@ namespace Watchdog
                 }
             }
 
-            foreach (var file in files)
+            foreach (var condition in manualCheckCondiciones)
             {
-                foreach (var condition in manualCheckCondiciones)
+                var preReport = new List<string>();
+                foreach (var file in files)
                 {
                     if (condition.IsConditionMet(file))
                     {
-                        report.Add(condition.PrintAsMessage(file));
+                        preReport.Add(condition.PrintAsMessage(file));
                     }
+                    else if (condition.Unanime)
+                    {
+                        preReport.Clear();
+                        break;
+                    }
+                }
+                if (condition.Unanime && preReport.Count != 0)
+                {
+                    report.Add(condition.PrintAsMessage(Directorio));
+                }
+                else
+                {
+                    report.AddRange(preReport);
                 }
             }
             return report;

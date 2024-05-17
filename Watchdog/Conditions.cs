@@ -9,6 +9,7 @@ namespace Watchdog
     public interface ICondition
     {
         public WatcherChangeTypes? TipoDeEvento { get; }
+        public bool Unanime { get; set; }
         public bool IsConditionMet(string filePath);
         public string PrintAsMessage(string filePath);
     }
@@ -16,6 +17,7 @@ namespace Watchdog
     public class NewLineContains : ICondition
     {
         public WatcherChangeTypes? TipoDeEvento { get; init; } = WatcherChangeTypes.Changed;
+        public bool Unanime { get; set; } = false;
         public string Contiene { get; init; } = string.Empty;
 
         public string PrintAsMessage(string filePath)
@@ -37,9 +39,10 @@ namespace Watchdog
         }
     }
 
-    public class InactiveFor : ICondition
+    public class FileInactiveFor : ICondition
     {
         public WatcherChangeTypes? TipoDeEvento { get; } = null;
+        public bool Unanime { get; set; } = false;
         public TimeSpan TiempoLimite { get; init; } = TimeSpan.FromDays(1);
 
         public string PrintAsMessage(string filePath)
