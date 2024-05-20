@@ -25,6 +25,7 @@ namespace Watchdog
         public List<string> Filtros { get; init; } = [];
         public List<ICondition> Condiciones { get; set; } = [];
         public bool IncluirSubdirectorios { get; init; } = false;
+        public bool IsGuarding { get => watcher is not null; }
 
         public delegate void WarningRaisedEventHandler(object sender, WarningRaisedEventArgs e);
         public event WarningRaisedEventHandler? WarningRaised;
@@ -32,47 +33,29 @@ namespace Watchdog
         private FileSystemWatcher? watcher;
         private static readonly List<WatcherChangeTypes> _acceptedTypes = [WatcherChangeTypes.Deleted, WatcherChangeTypes.Created, WatcherChangeTypes.Changed];
 
-        public void Guard()
+        public void Start()
         {
-            try
+            watcher = new()
             {
-                watcher = new()
-                {
-                    Path = Directorio,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
-                    IncludeSubdirectories = IncluirSubdirectorios,
-                };
-                if (Filtros.Count == 0)
-                {
-                    Filtros.Add("*");
-                }
-                foreach (var file in Filtros)
-                {
-                    watcher.Filters.Add(file);
-                }
-                watcher.Changed += OnChanged;
-                watcher.Created += OnChanged;
-                watcher.Deleted += OnChanged;
-                watcher.Error += OnError;
-
-                watcher.IncludeSubdirectories = true;
-                watcher.EnableRaisingEvents = true;
-            } 
-            catch (Exception ex)
+                Path = Directorio,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
+                IncludeSubdirectories = IncluirSubdirectorios,
+            };
+            if (Filtros.Count == 0)
             {
-                WarningRaised?.Invoke(this, new WarningRaisedEventArgs()
-                {
-                    Parent = this,
-                    Filename = Directorio,
-                    Message = $"Error al inicializar guardia de '{Directorio}'. Razón: '{ex.Message}'.",
-                    SystemError = true,
-                });
+                Filtros.Add("*");
             }
-        }
+            foreach (var file in Filtros)
+            {
+                watcher.Filters.Add(file);
+            }
+            watcher.Changed += OnChanged;
+            watcher.Created += OnChanged;
+            watcher.Deleted += OnChanged;
+            watcher.Error += OnError;
 
-        private void OnDisposed(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
+            watcher.IncludeSubdirectories = true;
+            watcher.EnableRaisingEvents = true;
         }
 
         public List<string> GetReport()

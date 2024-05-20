@@ -18,7 +18,6 @@ namespace Watchdog
             foreach (var guard in _config.Guardias)
             {
                 guard.WarningRaised += Guard_WarningRaised;
-                guard.Guard();
             }
 
             while (!stoppingToken.IsCancellationRequested)
@@ -26,6 +25,35 @@ namespace Watchdog
                 _logger.LogInformation("Doing routine check.");
                 string body = $"{_config.ConfiguracionEmail.EmailHeader}\r\n";
                 bool send = false;
+
+                var faultyFileWatchers = new List<string>();
+                foreach (var guard in _config.Guardias)
+                {
+                    try
+                    {
+                        if (!guard.IsGuarding)
+                        {
+                            guard.Start();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        send = true;
+                        faultyFileWatchers.Add($"Guardia '{guard.Nombre}' no está funcionando. Razón: '{ex.Message}'.");
+                    }
+                }
+
+                if (faultyFileWatchers.Count != 0)
+                {
+                    body += $"\nFALLA EN GUARDIAS:\n";
+                    foreach (var message in faultyFileWatchers)
+                    {
+                        body += $"    - {message}\n";
+                        _logger.LogInformation("{Message}", message);
+                    }
+                    body += "\r\n";
+                }
+
                 foreach (var guard in _config.Guardias)
                 {
                     try
@@ -38,15 +66,16 @@ namespace Watchdog
                             foreach (var message in report)
                             {
                                 body += $"    - {message}\n";
-                                _logger.LogInformation(message);
+                                _logger.LogInformation("{Message}", message);
                             }
                             body += "\r\n" ;
                         }
                     } 
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex.Message);
-                        await SendWarningEmails(guard.Nombre, ex.Message);
+                        _logger.LogError("{Message}", ex.Message);
+                        send = true;
+                        body += $"\nERROR: {ex.Message}\n";
                     }
                 }
                 if (send)
@@ -63,12 +92,12 @@ namespace Watchdog
             string body = $"{_config.ConfiguracionEmail.EmailHeader}\r\n\n{e.Parent.Nombre}\n    - {e.Message}";
             if (e.SystemError)
             {
-                _logger.LogError(e.Message);
+                _logger.LogError("{Message}", e.Message);
                 await SendWarningEmails(e.Parent.Nombre, body);
             }
             else
             {
-                _logger.LogInformation(e.Message);
+                _logger.LogInformation("{Message}", e.Message);
                 await SendWarningEmails(e.Parent.Nombre, body);
             }
         }
@@ -96,12 +125,12 @@ namespace Watchdog
                     Text = body
                 };
 
-                _logger.LogInformation(await client.SendAsync(message));
+                _logger.LogInformation("{Message}", await client.SendAsync(message));
                 await client.DisconnectAsync(true);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                _logger.LogError("{Message}", ex.Message);
             }
         }
     }
