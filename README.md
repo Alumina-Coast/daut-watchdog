@@ -22,19 +22,19 @@ Para configurar el programa, debe modificar el archivo `config.yaml` ubicado en 
 IterarCada: 1.00:00:00
 Guardias:
   - Nombre: test
-    Directorio: C:\\test
+    Directorio: C:\test
     IncluirSubdirectorios: true
     Filtros:
-      - \"texto.txt\"
-      - \"*.log\"
-      - \"nombre.*\"
+      - "texto.txt"
+      - "*.log\"
+      - "nombre.*"
     Condiciones:
       - Condicion: Inactividad
 	TiempoLimite: 0.00:01:00
       - Condicion: UltimaLinea
         Contiene: error
   - Nombre: TEST2
-    Directorio: C:\\test
+    Directorio: C:\test
     Condiciones:
       - Condicion: Inactividad
         TiempoLimite: 0.01:00:00
