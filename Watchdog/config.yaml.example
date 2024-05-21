@@ -8,6 +8,7 @@ Guardias:
   - "nombre.*"
   Condiciones:
   - Condicion: Inactividad
+    Unanime: true
     TiempoLimite: 0.00:01:00  # 1 minute
   - Condicion: LeerUltimaLinea
     Contiene: error
