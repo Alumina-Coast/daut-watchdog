@@ -30,7 +30,7 @@ Guardias:
       - \"nombre.*\"
     Condiciones:
       - Condicion: Inactividad
-	    TiempoLimite: 0.00:01:00
+	TiempoLimite: 0.00:01:00
       - Condicion: UltimaLinea
         Contiene: error
   - Nombre: TEST2
