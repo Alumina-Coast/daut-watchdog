@@ -7,7 +7,7 @@ Aplicación para monitorear carpetas y alertar por email en condiciones particul
 Instale la versión publicada de DAUT-Watchdog como un servicio de Windows, utilizando los siguientes comandos:
 
 ```sh
-sc create \"Service Name\" binPath=\"path\\to\\binary.exe\" start= auto
+sc create "Service Name" binPath="path\to\binary.exe" start= auto
 ```
 
 Es probable que deba iniciarlo manualmente desde la página de gestión de servicios la primera vez.
