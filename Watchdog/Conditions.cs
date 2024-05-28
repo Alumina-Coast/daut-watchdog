@@ -57,7 +57,7 @@ namespace Watchdog
                 var fileInfo = new FileInfo(filePath);
                 if (fileInfo.Exists)
                 {
-                    return DateTime.UtcNow - fileInfo.LastAccessTimeUtc >= TiempoLimite;
+                    return DateTime.UtcNow - fileInfo.LastWriteTimeUtc >= TiempoLimite;
                 }
             }
             return false;
