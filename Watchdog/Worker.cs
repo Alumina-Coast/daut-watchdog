@@ -88,9 +88,13 @@ namespace Watchdog
                     await Task.Delay(_config.IterarCada, stoppingToken);
                 }
             }
+            catch (TaskCanceledException)
+            {
+
+            }
             catch (Exception ex)
             {
-                _logger.LogError("Sudden worker exit: {Message}", ex.Message);
+                _logger.LogError("Sudden worker exit: {Message} - {Error}", ex.Message, ex.GetType().ToString());
 
                 try
                 {
