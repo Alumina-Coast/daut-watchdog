@@ -15,75 +15,90 @@ namespace Watchdog
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            foreach (var guard in _config.Guardias)
+            try
             {
-                guard.WarningRaised += Guard_WarningRaised;
-            }
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("Doing routine check.");
-                string body = $"{_config.ConfiguracionEmail.EmailHeader}\r\n";
-                bool send = false;
-
-                var faultyFileWatchers = new List<string>();
                 foreach (var guard in _config.Guardias)
                 {
-                    try
+                    guard.WarningRaised += Guard_WarningRaised;
+                }
+
+                while (!stoppingToken.IsCancellationRequested)
+                {
+                    _logger.LogInformation("Doing routine check.");
+                    string body = $"{_config.ConfiguracionEmail.EmailHeader}\r\n";
+                    bool send = false;
+
+                    var faultyFileWatchers = new List<string>();
+                    foreach (var guard in _config.Guardias)
                     {
-                        if (!guard.IsGuarding)
+                        try
                         {
-                            guard.Start();
+                            if (!guard.IsGuarding)
+                            {
+                                guard.Start();
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        send = true;
-                        faultyFileWatchers.Add($"Guardia '{guard.Nombre}' no está funcionando. Razón: '{ex.Message}'.");
-                    }
-                }
-
-                if (faultyFileWatchers.Count != 0)
-                {
-                    body += $"\nFALLA EN GUARDIAS:\n";
-                    foreach (var message in faultyFileWatchers)
-                    {
-                        body += $"    - {message}\n";
-                        _logger.LogInformation("{Message}", message);
-                    }
-                    body += "\r\n";
-                }
-
-                foreach (var guard in _config.Guardias)
-                {
-                    try
-                    {
-                        var report = guard.GetReport();
-                        if (report.Count > 0)
+                        catch (Exception ex)
                         {
                             send = true;
-                            body += $"\n{guard.Nombre}:\n";
-                            foreach (var message in report)
-                            {
-                                body += $"    - {message}\n";
-                                _logger.LogInformation("{Message}", message);
-                            }
-                            body += "\r\n" ;
+                            faultyFileWatchers.Add($"Guardia '{guard.Nombre}' no está funcionando. Razón: '{ex.Message}'.");
                         }
-                    } 
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("{Message}", ex.Message);
-                        send = true;
-                        body += $"\nERROR: {ex.Message}\n";
                     }
-                }
-                if (send)
-                {
-                    await SendWarningEmails("Reporte", body);
-                }
 
-                await Task.Delay(_config.IterarCada, stoppingToken);
+                    if (faultyFileWatchers.Count != 0)
+                    {
+                        body += $"\nFALLA EN GUARDIAS:\n";
+                        foreach (var message in faultyFileWatchers)
+                        {
+                            body += $"    - {message}\n";
+                            _logger.LogInformation("{Message}", message);
+                        }
+                        body += "\r\n";
+                    }
+
+                    foreach (var guard in _config.Guardias)
+                    {
+                        try
+                        {
+                            var report = guard.GetReport();
+                            if (report.Count > 0)
+                            {
+                                send = true;
+                                body += $"\n{guard.Nombre}:\n";
+                                foreach (var message in report)
+                                {
+                                    body += $"    - {message}\n";
+                                    _logger.LogInformation("{Message}", message);
+                                }
+                                body += "\r\n";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError("{Message}", ex.Message);
+                            send = true;
+                            body += $"\nERROR: {ex.Message}\n";
+                        }
+                    }
+                    if (send)
+                    {
+                        await SendWarningEmails("Reporte", body);
+                    }
+
+                    await Task.Delay(_config.IterarCada, stoppingToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Sudden worker exit: {Message}", ex.Message);
+
+                try
+                {
+                    await SendWarningEmails("Cierre inesperado", $"Sudden worker exit: {ex.Message}");
+                }
+                catch { }
+
+                throw;
             }
         }
 
