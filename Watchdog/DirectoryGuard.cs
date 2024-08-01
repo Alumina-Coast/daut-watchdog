@@ -33,8 +33,9 @@ namespace Watchdog
         private FileSystemWatcher? watcher;
         private static readonly List<WatcherChangeTypes> _acceptedTypes = [WatcherChangeTypes.Deleted, WatcherChangeTypes.Created, WatcherChangeTypes.Changed];
 
-        public void Start()
+        public bool Start()
         {
+            if (Condiciones.All(c => c.TipoDeEvento is null || !_acceptedTypes.Contains(c.TipoDeEvento.Value))) { return false; }
             watcher = new()
             {
                 Path = Directorio,
@@ -56,6 +57,7 @@ namespace Watchdog
 
             watcher.IncludeSubdirectories = true;
             watcher.EnableRaisingEvents = true;
+            return true;
         }
 
         public List<string> GetReport()

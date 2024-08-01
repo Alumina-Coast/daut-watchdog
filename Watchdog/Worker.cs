@@ -35,7 +35,10 @@ namespace Watchdog
                         {
                             if (!guard.IsGuarding)
                             {
-                                guard.Start();
+                                if (guard.Start())
+                                {
+                                    _logger.LogInformation("File Watcher for Directory Guard '{Nombre}' started.", guard.Nombre);
+                                }
                             }
                         }
                         catch (Exception ex)
